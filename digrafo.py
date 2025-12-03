@@ -95,3 +95,77 @@ class Grafo:
             raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
 
         return self.indegree(vertice) + self.outdegree(vertice)
+    def w(self, origem, destino):
+        if origem not in self.vertices or destino not in self.vertices:
+            raise ValueError("Um ou ambos os vértices não estão no grafo.")
+
+        if (origem, destino) not in self.arestas:
+            raise ValueError(f"A aresta ({origem} -> {destino}) não existe no grafo.")
+
+        return self.arestas[(origem, destino)]
+    
+    def mind(self):
+        if not self.vertices:
+            raise ValueError("O grafo não possui vértices.")
+
+        menor = self.d(self.vertices[0])
+
+        for v in self.vertices[1:]:
+            deg = self.d(v)
+            if deg < menor:
+                menor = deg
+
+        return menor
+
+
+    def maxd(self):
+        if not self.vertices:
+            raise ValueError("O grafo não possui vértices.")
+
+        maior = self.d(self.vertices[0])
+
+        for v in self.vertices[1:]:
+            deg = self.d(v)
+            if deg > maior:
+                maior = deg
+
+        return maior
+    
+    def bfs(self, s):
+        if s not in self.vertices:
+            raise ValueError(f"O vértice '{s}' não está no dígrafo.")
+
+        cor = {}
+        d = {}
+        pi = {}
+
+        # Inicialização
+        for v in self.vertices:
+            cor[v] = "Branco"
+            d[v] = float("inf")
+            pi[v] = None
+
+        cor[s] = "Cinza"
+        d[s] = 0
+
+        Q = deque()
+        Q.append(s)
+
+        # BFS
+        while Q:
+            u = Q.popleft()
+
+            for v in self.listaAdj.get(u, []):  # N⁺(u)
+                if cor[v] == "Branco":
+                    cor[v] = "Cinza"
+                    d[v] = d[u] + 1
+                    pi[v] = u
+                    Q.append(v)
+
+            cor[u] = "Preto"
+
+        # Retorna como listas respeitando a ordem dos vértices
+        lista_d = [d[v] for v in self.vertices]
+        lista_pi = [pi[v] for v in self.vertices]
+
+        return lista_d, lista_pi

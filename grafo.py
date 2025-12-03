@@ -101,5 +101,38 @@ class Grafo:
 
         return d, pi
 
+    #teu bfs melhorado
+    # def bfs(self, v):
+    #     if v not in self.vertices:
+    #         raise ValueError(f"O vértice '{v}' não está no dígrafo.")
+
+    #     vertices = {}
+
+    #     for vertice in self.vertices:
+    #         if vertice != v:
+    #             vertices[vertice] = ['branco', float('inf'), None]
+
+    #     vertices[v] = ['cinza', 0, None]
+
+    #     fila = deque()
+    #     fila.append(v)
+
+    #     while fila:
+    #         primeiro = fila.popleft()
+
+    #         for vertice in self.listaAdj.get(primeiro, []):
+    #             if vertices[vertice][0] == 'branco':
+    #                 vertices[vertice][0] = 'cinza'
+    #                 vertices[vertice][1] = vertices[primeiro][1] + 1
+    #                 vertices[vertice][2] = primeiro
+    #                 fila.append(vertice)
+
+    #         vertices[primeiro][0] = 'preto'
+
+    #     d = [vertices[vertice][1] for vertice in self.vertices]
+    #     pi = [vertices[vertice][2] for vertice in self.vertices]
+
+    #     return d, pi
+
 
 
