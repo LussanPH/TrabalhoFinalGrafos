@@ -22,6 +22,12 @@ class Grafo:
         if tuple(origemDestinoPeso[:2]) not in self.arestas:# Adiciona a aresta com seu peso ao self.arestas
             self.arestas[tuple(origemDestinoPeso[:2])] = origemDestinoPeso[2]
 
+        aresta = origemDestinoPeso[:2]
+        aresta.reverse()
+
+        if tuple(aresta) not in self.arestas:# Adiciona a aresta "invertida" ao self.arestas
+            self.arestas[tuple(aresta)] = origemDestinoPeso[2]
+
         if origemDestinoPeso[0] not in self.listaAdj:# Adiciona a origem à lista de adjacências
             self.listaAdj[origemDestinoPeso[0]] = []
 
@@ -137,7 +143,46 @@ class Grafo:
 
         return pi, ini, fim
 
+    def djikstra(self, v):
+        if v not in self.vertices:
+            raise ValueError(f"O vértice '{v}' não está no grafo.")
 
+        vertices = {}
+        naoVisitados = [] #Vérices à serem visitados
+
+        for vertice in self.vertices:
+            naoVisitados.append(vertice)
+            if vertice != v:
+                vertices[vertice] = [None, float('inf')]# vértice predecessor, peso
+
+        vertices[v] = [None, 0]
+
+        while len(naoVisitados) != 0:
+            verticeMinimo = naoVisitados[0]
+            valorMinimo = vertices[verticeMinimo][1]
+
+            for vertice in naoVisitados:#procura o vétice com peso mínimo que não foi visitado
+                if vertices[vertice][1] <= valorMinimo:
+                    verticeMinimo = vertice
+                    valorMinimo = vertices[vertice][1]
+
+            naoVisitados.remove(verticeMinimo)#remove dos vérices a serem visitados
+
+            for vertice in self.listaAdj[verticeMinimo]:#Faz o relaxamento das aresta para cada vizinho que ainda não tenha sido visitado
+                if vertice not in naoVisitados:
+                    continue
+
+                aresta = [verticeMinimo, vertice]
+                if vertices[vertice][1] > vertices[verticeMinimo][1] + self.arestas[tuple(aresta)]:#Processo de relaxamento da aresta
+                    vertices[vertice][0] = verticeMinimo
+                    vertices[vertice][1] = vertices[verticeMinimo][1] + self.arestas[tuple(aresta)]
+
+        d = [vertices[vertice][1] for vertice in self.vertices]
+        pi = [vertices[vertice][0] for vertice in self.vertices]
+
+        return d, pi
+                    
+        
 
 
 

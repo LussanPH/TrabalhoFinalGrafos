@@ -3,6 +3,7 @@ from grafo import Grafo
 G = Grafo(True) 
 
 G.add([0, 1, 2])
+G.add([1, 0, 2])
 G.add([0, 2, 4])
 G.add([1, 2, 1])
 G.add([1, 3, 7])
@@ -19,3 +20,4 @@ print(G.mind())
 print(G.maxd())
 print(G.bfs(0))
 print(G.dfs(0))
+print(G.djikstra(0))
