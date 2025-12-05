@@ -135,7 +135,7 @@ class Grafo:
         
         for vertice in self.vertices:
             if vertices[vertice][0] == 'branco':
-                dfs_visita(vertices, vertice, self.listaAdj, tempo)
+                dfs_visita(vertices, vertice, self.listaAdj, tempo)#Recursão para visitar até a camada mais profunda
 
         pi = [vertices[vertice][1] for vertice in self.vertices]
         ini = [vertices[vertice][2] for vertice in self.vertices]
@@ -189,19 +189,19 @@ class Grafo:
         
         vertices = {}
 
-        for vertice in self.vertices:
+        for vertice in self.vertices:#Inicialização de cada vértice
             vertices[vertice] = [None, float('inf')]
 
         vertices[v] = [None, 0]
 
-        for _ in range(len(self.vertices) - 1):
+        for _ in range(len(self.vertices) - 1):#Executa até o número de vértices - 1
 
-            for aresta in self.arestas:
+            for aresta in self.arestas:#Relaxamento
                 if vertices[aresta[0]][1] + self.arestas[aresta] < vertices[aresta[1]][1]:
                     vertices[aresta[1]][0] = aresta[0]
                     vertices[aresta[1]][1] = vertices[aresta[0]][1] + self.arestas[aresta]
 
-        for aresta in self.arestas:
+        for aresta in self.arestas:#Verificação de ciclo negativo
             if vertices[aresta[0]][1] + self.arestas[aresta] < vertices[aresta[1]][1]:
 
                 return "Existe ciclo negativo"
@@ -211,7 +211,30 @@ class Grafo:
 
         return d, pi
                     
-        
+    
+    def coloracao_propria(self):
+        c = [0 for _ in range(len(self.vertices))] #Cores inicializadas com vazio (0)
+
+        for vertice in self.vertices:
+            cores_usadas = []#Verifica as cores utilizadas por cada vizinho do vértice
+
+            for vizinho in self.listaAdj[vertice]:
+
+                if c[vizinho] != 0:
+                    cores_usadas.append(c[vizinho])
+            
+            cor = 1
+
+            while cor in cores_usadas:#Adiciona uma cor ao vértice dependendo dos seus vizinhos
+                cor += 1
+
+            c[vertice] = cor
+            
+        k = max(c)
+
+        return c, k
+            
+
 
 
 
