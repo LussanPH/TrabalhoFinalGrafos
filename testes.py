@@ -1,7 +1,7 @@
 from grafo import Grafo
 
 G = Grafo(True) 
-
+"""
 G.add([0, 1, 2])
 G.add([1, 0, 2])
 G.add([0, 2, 4])
@@ -23,3 +23,11 @@ print(G.dfs(0))
 print(G.djikstra(0))
 print(G.bf(0))
 print(G.coloracao_propria())
+"""
+
+with open("USA-road-d.NY.gr", 'r') as f:
+    for linha in f:
+        lista = linha.split()
+        G.add([lista[1], lista[2], lista[3]])
+
+    print(G.vertices)

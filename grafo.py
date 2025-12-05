@@ -46,7 +46,7 @@ class Grafo:
     
     
     def m(self):# Retorna número de arestas
-        return len(self.arestas)
+        return len(self.arestas)/2
     
     
     def viz(self, vertice):# Retorna os vizinhos de um vértice
