@@ -181,6 +181,35 @@ class Grafo:
         pi = [vertices[vertice][0] for vertice in self.vertices]
 
         return d, pi
+
+
+    def bf(self, v):
+        if v not in self.vertices:
+            raise ValueError(f"O vértice '{v}' não está no grafo.")
+        
+        vertices = {}
+
+        for vertice in self.vertices:
+            vertices[vertice] = [None, float('inf')]
+
+        vertices[v] = [None, 0]
+
+        for _ in range(len(self.vertices) - 1):
+
+            for aresta in self.arestas:
+                if vertices[aresta[0]][1] + self.arestas[aresta] < vertices[aresta[1]][1]:
+                    vertices[aresta[1]][0] = aresta[0]
+                    vertices[aresta[1]][1] = vertices[aresta[0]][1] + self.arestas[aresta]
+
+        for aresta in self.arestas:
+            if vertices[aresta[0]][1] + self.arestas[aresta] < vertices[aresta[1]][1]:
+
+                return "Existe ciclo negativo"
+            
+        d = [vertices[vertice][1] for vertice in self.vertices]
+        pi = [vertices[vertice][0] for vertice in self.vertices]
+
+        return d, pi
                     
         
 
