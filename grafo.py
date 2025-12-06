@@ -141,7 +141,7 @@ class Grafo:
 
         return pi, ini, fim
 
-    def djikstra(self, v):
+    def dijkstra(self, v):
         if v not in self.vertices:
             raise ValueError(f"O vértice '{v}' não está no grafo.")
 
