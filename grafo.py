@@ -63,9 +63,7 @@ class Grafo:
         return len(self.listaAdj.get(vertice)) # type: ignore
     
     
-    def w(self, origemDestino):
-        origem = origemDestino // 10
-        destino = origemDestino % 10
+    def w(self, origem, destino):
         origemDestino = [origem, destino]
         return self.arestas[tuple(origemDestino)] 
      
