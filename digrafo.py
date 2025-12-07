@@ -324,6 +324,87 @@ class Digrafo:
         k = max(c)
 
         return c, k
+    
+        # Encontra um caminho com pelo menos 10 arestas (11 vértices) usando BFS
+    def encontrar_caminho_10_arestas(self):
+        for origem in self.vertices:
+            d, pi = self.bfs(origem)
 
+            dist = dict(zip(self.vertices, d))
+            pred = dict(zip(self.vertices, pi))
+
+            destino = max(dist, key=dist.get)
+
+            if dist[destino] >= 10:
+                caminho = []
+                atual = destino
+
+                while atual is not None:
+                    caminho.append(atual)
+                    atual = pred[atual]
+
+                caminho.reverse()
+                return caminho[:11]
+
+        return None
+
+
+    # DFS auxiliar para detectar ciclo com no mínimo 5 arestas
+    def dfs_ciclo(self, v, visitados, pilha, caminho):
+        visitados.add(v)
+        pilha.add(v)
+        caminho.append(v)
+
+        for u in self.listaAdj.get(v, []):
+            if u in pilha:
+                idx = caminho.index(u)
+                ciclo = caminho[idx:]
+
+                # 5 arestas = 6 vértices
+                if len(ciclo) >= 6:
+                    return ciclo
+
+            elif u not in visitados:
+                resultado = self.dfs_ciclo(u, visitados, pilha, caminho)
+                if resultado:
+                    return resultado
+
+        pilha.remove(v)
+        caminho.pop()
+        return None
+
+
+    # Função principal para encontrar um ciclo com pelo menos 5 arestas
+    def encontrar_ciclo_com_5_arestas(self):
+        visitados = set()
+
+        for v in self.vertices:
+            if v not in visitados:
+                ciclo = self.dfs_ciclo(v, visitados, set(), [])
+                if ciclo:
+                    return ciclo
+
+        return None
+
+
+    # Retorna o vértice mais distante (via Dijkstra)
+    def vertice_mais_distante(self, origem=129):
+        d, _ = self.djikstra(origem)
+
+        dist = dict(zip(self.vertices, d))
+        dist_validos = {v: d for v, d in dist.items() if d < float("inf")}
+
+        if not dist_validos:
+            return None
+
+        return max(dist_validos.items(), key=lambda item: item[1])
+
+    def carregar_arquivo(self, caminho):
+        with open(caminho, 'r') as f:
+            for linha in f:
+                if linha.startswith("a"):
+                    _, x, y, p = linha.strip().split()
+                    self.add([int(x), int(y), int(p)])
+        return self
     
     
