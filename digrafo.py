@@ -258,28 +258,34 @@ class Digrafo:
     
         # Encontra um caminho com pelo menos 10 arestas (11 vértices) usando BFS
     def encontrar_caminho_10_arestas(self):
-        # roda o seu DFS
-        lista_pi, _, _ = self.dfs()
+        for origem in self.vertices:
 
-        # transforma em dicionário: vértice -> predecessor
-        pred = dict(zip(self.vertices, lista_pi))
+            # CHAMADA DIRETA DO SEU BFS
+            lista_d, lista_pi = self.bfs(origem)
 
-        # tenta montar caminhos a partir de cada vértice
-        for destino in self.vertices:
-            caminho = []
-            atual = destino
+            # Mapeia as listas de volta para o vértice correspondente
+            d = dict(zip(self.vertices, lista_d))
+            pi = dict(zip(self.vertices, lista_pi))
 
-            while atual is not None:
-                caminho.append(atual)
-                atual = pred[atual]
+            # Procura um vértice com pelo menos 10 arestas de distância
+            for destino in self.vertices:
+                if d[destino] >= 10 and d[destino] != float("inf"):
 
-            caminho.reverse()  # origem -> destino
+                    # Reconstrói o caminho usando pi (do seu BFS)
+                    caminho = []
+                    atual = destino
+                    while atual is not None:
+                        caminho.append(atual)
+                        atual = pi[atual]
 
-            # se tiver pelo menos 10 arestas (11 vértices)
-            if len(caminho) >= 11:
-                return caminho[:11]  # retorna exatamente 10 arestas
+                    caminho.reverse()
+
+                    # Garante exatamente 10 arestas => 11 vértices
+                    if len(caminho) >= 11:
+                        return caminho[:11]
 
         return None
+
 
 
     # DFS auxiliar para detectar ciclo com no mínimo 5 arestas
