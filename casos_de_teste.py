@@ -17,10 +17,10 @@ def main():
     print(f"Vértices: {G.n()}")
     print(f"Arestas: {G.m()}")
     menor_grau = G.mind()
-    print(f"O menor grau é: {menor_grau}")
+    print(f"a) O menor grau é: {menor_grau}")
     
-    # maior_grau = G.maxd()
-    # print(f"O maior grau é: {maior_grau}") 
+    maior_grau = G.maxd()
+    print(f"b) O maior grau é: {maior_grau}") 
 
     # caminho_10 = G.encontrar_caminho_10_arestas()
     # if caminho_10:
@@ -34,11 +34,11 @@ def main():
     # else:
     #     print("d) nao foi encontrado cicllo com ≥ 5 arestas.")
 
-    # vertice_dist, distancia = G.vertice_mais_distante(origem=129)
-    # print(f"e) vertice mais distante de 129: {vertice_dist} com distancia {distancia}")
+    vertice_dist, distancia = G.vertice_mais_distante(origem=129)
+    print(f"e) vertice mais distante de 129: {vertice_dist} com distancia {distancia}")
 
-    # cores, num_cores = G.coloracao_propria()
-    # print(f"f) quantidade de cores na coloração própria: {num_cores}")
+    cores, num_cores = G.coloracao_propria()
+    print(f"f) quantidade de cores na coloração própria: {num_cores}")
     
 if __name__ == "__main__": 
     main()

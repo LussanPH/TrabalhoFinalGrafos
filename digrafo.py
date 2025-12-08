@@ -1,5 +1,5 @@
 from collections import deque
-
+import heapq
 
 class Digrafo:
     # Possui a lista de vétices, se ele é ponderado ou não, a lista de arestas e a lista com as adjacências de cada vértice
@@ -45,45 +45,25 @@ class Digrafo:
         return len(self.arestas)
 
     def outneighborhood(self, vertice):
-        if vertice not in self.vertices:
-            raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
-
         return self.listaAdj[vertice]
 
     def inneighborhood(self, vertice):
-        if vertice not in self.vertices:
-            raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
-
         return self.listaIN[vertice] 
-    def viz(self, vertice):
-        if vertice not in self.vertices:
-            raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
 
+    def viz(self, vertice):
         # União das vizinhanças: in ∪ out
         return list(set(self.outneighborhood(vertice) + self.inneighborhood(vertice)))
 
     def outdegree(self, vertice):
-        if vertice not in self.vertices:
-            raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
-
         return len(self.listaAdj[vertice])
 
     def indegree(self, vertice):
-        if vertice not in self.vertices:
-            raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
-
         return len(self.listaIN[vertice])
 
     def d(self, vertice):
-        if vertice not in self.vertices:
-            raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
-
         return self.indegree(vertice) + self.outdegree(vertice)
 
     def w(self, origem, destino):
-        if origem not in self.vertices or destino not in self.vertices:
-            raise ValueError("Um ou ambos os vértices não estão no grafo.")
-
         if (origem, destino) not in self.arestas:
             raise ValueError(
                 f"A aresta ({origem} -> {destino}) não existe no grafo.")
@@ -96,12 +76,7 @@ class Digrafo:
     def maxd(self):
         return max(self.d(v) for v in self.vertices)
 
-        
-
     def bfs(self, s):
-        if s not in self.vertices:
-            raise ValueError(f"O vértice '{s}' não está no dígrafo.")
-
         cor = {}
         d = {}
         pi = {}
@@ -192,9 +167,6 @@ class Digrafo:
 
 
     def bf(self, s):
-        if s not in self.vertices:
-            raise ValueError(f"O vértice '{s}' não está no dígrafo.")
-
         # INICIALIZA(D, s)
         d = {}
         pi = {}
@@ -227,48 +199,42 @@ class Digrafo:
 
         return lista_d, lista_pi, False
 
-    def djikstra(self, v):
-        if v not in self.vertices:
-            raise ValueError(f"O vértice '{v}' não está no grafo.")
-         # Verifica pesos negativos
-        for (_, _), peso in self.arestas.items():
+    def djikstra(self, origem):
+    # Verificar pesos negativos
+        for peso in self.arestas.values():
             if peso < 0:
                 raise ValueError("Dijkstra não permite pesos negativos")
 
-        vertices = {}
-        naoVisitados = [] #Vérices à serem visitados
+        # Inicialização
+        dist = {v: float('inf') for v in self.vertices}
+        pred = {v: None for v in self.vertices}
 
-        for vertice in self.vertices:
-            naoVisitados.append(vertice)
-            if vertice != v:
-                vertices[vertice] = [None, float('inf')]# vértice predecessor, peso
+        dist[origem] = 0
+        heap = [(0, origem)]  # (distância, vértice)
 
-        vertices[v] = [None, 0]
+        while heap:
+            dist_u, u = heapq.heappop(heap)
 
-        while len(naoVisitados) != 0:
-            verticeMinimo = naoVisitados[0]
-            valorMinimo = vertices[verticeMinimo][1]
+            # Ignora se for uma entrada desatualizada
+            if dist_u > dist[u]:
+                continue
 
-            for vertice in naoVisitados:#procura o vétice com peso mínimo que não foi visitado
-                if vertices[vertice][1] <= valorMinimo:
-                    verticeMinimo = vertice
-                    valorMinimo = vertices[vertice][1]
+            # Explora vizinhos de saída
+            for v in self.listaAdj[u]:
 
-            naoVisitados.remove(verticeMinimo)#remove dos vérices a serem visitados
+                peso = self.arestas[(u, v)]
+                nova_dist = dist[u] + peso
 
-            for vertice in self.listaAdj[verticeMinimo]:#Faz o relaxamento das aresta para cada vizinho que ainda não tenha sido visitado
-                if vertice not in naoVisitados:
-                    continue
+                if nova_dist < dist[v]:
+                    dist[v] = nova_dist
+                    pred[v] = u
+                    heapq.heappush(heap, (nova_dist, v))
 
-                aresta = [verticeMinimo, vertice]
-                if vertices[vertice][1] > vertices[verticeMinimo][1] + self.arestas[tuple(aresta)]:#Processo de relaxamento da aresta
-                    vertices[vertice][0] = verticeMinimo
-                    vertices[vertice][1] = vertices[verticeMinimo][1] + self.arestas[tuple(aresta)]
+        # Convertendo para listas na ordem de self.vertices (mantendo consistência)
+        lista_d = [dist[v] for v in self.vertices]
+        lista_pi = [pred[v] for v in self.vertices]
 
-        d = [vertices[vertice][1] for vertice in self.vertices]
-        pi = [vertices[vertice][0] for vertice in self.vertices]
-
-        return d, pi
+        return lista_d, lista_pi
     
     def coloracao_propria(self):
         c = {v: 0 for v in self.vertices}  # cores por vértice
