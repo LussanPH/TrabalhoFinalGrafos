@@ -2,7 +2,16 @@ from collections import deque
 import heapq
 
 class Digrafo:
-    # Possui a lista de vétices, se ele é ponderado ou não, a lista de arestas e a lista com as adjacências de cada vértice
+    """
+    Classe Digrafo (grafo dirigido).
+    Representa um dígrafo com:
+      - lista de vértices (self.vertices)
+      - conjunto auxiliar para checagem rápida de existência (self._vertices_set)
+      - flag se é ponderado (self.ponderado)
+      - dicionário de arestas com peso: keys são tuplas (u, v) -> peso (self.arestas)
+      - lista de adjacência de saída: self.listaAdj[u] = [v1, v2, ...]
+      - lista de adjacência de entrada: self.listaIN[v] = [u1, u2, ...] 
+    """    
     def __init__(self, ponderado=False):
         self.vertices = []
         self._vertices_set = set() 
@@ -11,7 +20,7 @@ class Digrafo:
         self.listaAdj = {}
         self.listaIN = {}
 
-    def add_vertice(self, v):
+    def add_vertice(self, v):  # Adiciona vértice ao grafo
 
         if v not in self._vertices_set:
             self.vertices.append(v)
@@ -19,7 +28,7 @@ class Digrafo:
             self.listaAdj[v] = []
             self.listaIN[v] = []
     
-    def add_aresta(self, u, v, peso=None):
+    def add_aresta(self, u, v, peso=None): # Adiciona aresta direcionada (u -> v) com peso opcional
 
         if not self.ponderado or peso is None:
             peso = 1
@@ -44,39 +53,46 @@ class Digrafo:
     def m(self):  # Retorna número de arestas
         return len(self.arestas)
 
-    def outneighborhood(self, vertice):
+    def outneighborhood(self, vertice):  # Vizinhança de saída (lista de vértices que saem de `vertice`)
         return self.listaAdj[vertice]
 
-    def inneighborhood(self, vertice):
+    def inneighborhood(self, vertice):  # Vizinhança de entrada (lista de vértices que chegam em `vertice`)
         return self.listaIN[vertice] 
 
     def viz(self, vertice):
         # União das vizinhanças: in ∪ out
         return list(set(self.outneighborhood(vertice) + self.inneighborhood(vertice)))
 
-    def outdegree(self, vertice):
+    def outdegree(self, vertice): # Grau de saída
         return len(self.listaAdj[vertice])
 
-    def indegree(self, vertice):
+    def indegree(self, vertice): # Grau de entrada
         return len(self.listaIN[vertice])
 
-    def d(self, vertice):
+    def d(self, vertice): # Grau total (in + out)
         return self.indegree(vertice) + self.outdegree(vertice)
 
-    def w(self, origem, destino):
+    def w(self, origem, destino): # Retorna peso da aresta (origem -> destino)
         if (origem, destino) not in self.arestas:
             raise ValueError(
                 f"A aresta ({origem} -> {destino}) não existe no grafo.")
 
         return self.arestas[(origem, destino)]
 
-    def mind(self):
+    def mind(self): # Menor grau total entre todos os vértices
         return min(self.d(v) for v in self.vertices)
 
-    def maxd(self):
+    def maxd(self): # Maior grau total entre todos os vértices
         return max(self.d(v) for v in self.vertices)
 
     def bfs(self, s):
+        """
+        BFS:
+          - cor: marca status ("Branco" não visitado, "Cinza" descoberto, "Preto" terminado)
+          - d: distância (número de arestas) de s até cada vértice
+          - pi: predecessor no caminho de s => v
+        Retorna duas listas (distâncias e predecessores) na ordem de self.vertices.
+        """
         cor = {}
         d = {}
         pi = {}
@@ -113,6 +129,12 @@ class Digrafo:
         return lista_d, lista_pi
 
     def dfs(self, s=None):
+        """
+        DFS que marca tempos de entrada e saída (v_ini, v_fim) e predecessores (pi).
+        Se s for fornecido, a DFS inicia por s (útil para varreduras iniciadas),
+        mas depois garante cobertura completa do grafo (varre todos os vértices).
+        Retorna listas [pi], [v_ini], [v_fim] na ordem de self.vertices.
+        """
         # INICIA_DFS
         cor = {}
         pi = {}
@@ -167,6 +189,16 @@ class Digrafo:
 
 
     def bf(self, s):
+        """
+        Implementação do algoritmo de Bellman-Ford para caminhos mínimos
+        em grafos que podem ter pesos negativos (mas detecta ciclos negativos).
+        Parâmetros:
+          - s: vértice origem
+        Retorna:
+          - lista_d: distâncias na ordem de self.vertices
+          - lista_pi: predecessores na ordem de self.vertices
+          - booleano indicando se há ciclo negativo (True se tiver)
+        """  
         # INICIALIZA(D, s)
         d = {}
         pi = {}
@@ -200,7 +232,16 @@ class Digrafo:
         return lista_d, lista_pi, False
 
     def djikstra(self, origem):
-    # Verificar pesos negativos
+        """
+        Implementação de Dijkstra utilizando heap (fila de prioridade).
+        Observações importantes:
+          - Verifica se há pesos negativos nas arestas e lança ValueError se houver,
+            pois o algoritmo de Dijkstra não é válido com pesos negativos.
+          - Usa heapq para manter a próxima relaxação mais promissora.
+          - Mantém 'dist' e 'pred' como dicionários e no final retorna listas
+            na ordem de self.vertices (consistência com outras funções).
+        """
+        # Verificar pesos negativos
         for peso in self.arestas.values():
             if peso < 0:
                 raise ValueError("Dijkstra não permite pesos negativos")
@@ -237,6 +278,14 @@ class Digrafo:
         return lista_d, lista_pi
     
     def coloracao_propria(self):
+        """
+        Implementa uma heurística gulosa simples para coloração de vértices:
+          - Para cada vértice (na ordem de inserção), escolhe a menor cor inteira positiva
+            que não esteja sendo usada por nenhum vizinho de saída (listaAdj).
+        Retorna:
+          - dicionário c: vértice -> cor (int)
+          - k: número de cores usadas (valor máximo em c)
+        """
         c = {v: 0 for v in self.vertices}  # cores por vértice
 
         for vertice in self.vertices:
@@ -256,11 +305,22 @@ class Digrafo:
 
         return c, k
     
-        # Encontra um caminho com pelo menos 10 arestas (11 vértices) usando BFS
+    # Encontra um caminho com pelo menos 10 arestas (11 vértices) usando BFS
     def encontrar_caminho_10_arestas(self):
+        """
+        Objetivo: encontrar e retornar um caminho com exatamente (ou pelo menos) 10 arestas
+                 (o código retorna os primeiros 11 vértices do caminho quando encontra).
+        Estratégia:
+          - Para cada vértice 'origem' em self.vertices:
+              1. Executa BFS a partir de 'origem' (usa self.bfs)
+              2. Mapeia resultados de volta para dicionários (distâncias e predecesores)
+              3. Procura um destino cuja distância d >= 10 e reconstruir o caminho via pi
+              4. Se o caminho reconstruído tiver 11 ou mais vértices, retorna os 11 primeiros
+          - Se não encontrar nenhum caminho que satisfaça, retorna None
+        """
         for origem in self.vertices:
 
-            # CHAMADA DIRETA DO SEU BFS
+            # CHAMADA DIRETA DO BFS
             lista_d, lista_pi = self.bfs(origem)
 
             # Mapeia as listas de volta para o vértice correspondente
@@ -271,7 +331,7 @@ class Digrafo:
             for destino in self.vertices:
                 if d[destino] >= 10 and d[destino] != float("inf"):
 
-                    # Reconstrói o caminho usando pi (do seu BFS)
+                    # Reconstrói o caminho usando pi (do BFS)
                     caminho = []
                     atual = destino
                     while atual is not None:
@@ -290,6 +350,24 @@ class Digrafo:
 
     # DFS auxiliar para detectar ciclo com no mínimo 5 arestas
     def dfs_ciclo(self, v, visitados, pilha, caminho):
+        """
+        DFS auxiliar usado para detectar ciclos dirigidos.
+        Parâmetros:
+          - v: vértice atual
+          - visitados: conjunto de nós já completamente visitados (marcados)
+          - pilha: conjunto representando a pilha de recursão atual (nós na rota ativa)
+          - caminho: lista dos vértices na rota de recursão (ordem de entrada)
+        Lógica:
+          - Marca v como visitado (adicionado a 'visitados' e 'pilha' e appended em 'caminho')
+          - Para cada vizinho u de v:
+              - Se u estiver na pilha, encontramos um ciclo. Recuperamos a sublista de 'caminho'
+                a partir do índice de 'u' para o final -> esse é o ciclo detectado.
+              - Se ciclo tem comprimento >= 6 vértices (ou seja, >= 5 arestas), retorna ciclo.
+              - Caso contrário, se u não for visitado, recursivamente tenta encontrar ciclo a partir de u.
+          - Ao sair do nó, remove-o da pilha e do caminho.
+        Retorna:
+          - ciclo (lista de vértices) se encontrado; caso contrário, None.
+        """
         visitados.add(v)
         pilha.add(v)
         caminho.append(v)
@@ -315,6 +393,12 @@ class Digrafo:
 
     # Função principal para encontrar um ciclo com pelo menos 5 arestas
     def encontrar_ciclo_com_5_arestas(self):
+        """
+        Percorre todos os vértices e usa dfs_ciclo para detectar um ciclo dirigido
+        com comprimento mínimo de 6 vértices (5 arestas). Retorna o primeiro ciclo
+        encontrado ou None caso não exista.
+        """
+
         visitados = set()
 
         for v in self.vertices:
@@ -328,6 +412,14 @@ class Digrafo:
 
     # Retorna o vértice mais distante (via Dijkstra)
     def vertice_mais_distante(self, origem=129):
+        """
+        Utiliza Dijkstra para obter distâncias a partir de 'origem' e retorna
+        o par (vértice, distância) correspondente ao vértice alcançável com a
+        maior distância finita.
+        Observações:
+          - Se todos os vértices forem inalcançáveis (dist = inf), retorna None.
+          - Por padrão, origem = 129 (mas pode ser passado qualquer vértice existente).
+        """
         d, _ = self.djikstra(origem)
 
         dist = dict(zip(self.vertices, d))
@@ -339,6 +431,13 @@ class Digrafo:
         return max(dist_validos.items(), key=lambda item: item[1])
 
     def carregar_arquivo(self, caminho):
+        """
+        Lê um arquivo texto com linhas que começam com "a" indicando arestas.
+        Exemplo de linha esperada: "a 1 2 10" (aresta 1->2 com peso 10).
+        Observações e garantias:
+          - Faz parse simples; está assumindo o formato correto do arquivo.
+          - Converte x, y, p em inteiros antes de adicionar ao grafo.
+        """
         with open(caminho, 'r') as f:
             for linha in f:
                 if linha.startswith("a"):
