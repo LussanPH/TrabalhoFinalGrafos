@@ -48,7 +48,7 @@ class Digrafo:
         if vertice not in self.vertices:
             raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
 
-        self.listaAdj[vertice]
+        return self.listaAdj[vertice]
 
     def inneighborhood(self, vertice):
         if vertice not in self.vertices:

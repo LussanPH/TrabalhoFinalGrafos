@@ -16,8 +16,8 @@ def main():
     
     print(f"Vértices: {G.n()}")
     print(f"Arestas: {G.m()}")
-    # menor_grau = G.mind()
-    # print(f"O menor grau é: {menor_grau}")
+    menor_grau = G.mind()
+    print(f"O menor grau é: {menor_grau}")
     
     # maior_grau = G.maxd()
     # print(f"O maior grau é: {maior_grau}") 

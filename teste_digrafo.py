@@ -22,9 +22,8 @@ def main():
         [10, 11, 2],
         [11, 12, 2]
     ]
-
-    for a in arestas:
-        G.add(a)
+    for u, v, p in arestas:
+        G.add_aresta(u, v, p)
 
     print("\n=== INFORMAÇÕES BÁSICAS ===")
     print("Vértices:", G.vertices)
