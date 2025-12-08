@@ -5,39 +5,39 @@ class Digrafo:
     # Possui a lista de vétices, se ele é ponderado ou não, a lista de arestas e a lista com as adjacências de cada vértice
     def __init__(self, ponderado=False):
         self.vertices = []
+        self._vertices_set = set() 
         self.ponderado = ponderado
         self.arestas = {}
         self.listaAdj = {}
+        self.listaIN = {}
 
-    def add(self, origemDestinoPeso):
-        # Se não for ponderado, define peso 1
-        if not self.ponderado:
-            origemDestinoPeso.append(1)
+    def add_vertice(self, v):
 
-        origem, destino, peso = origemDestinoPeso
+        if v not in self._vertices_set:
+            self.vertices.append(v)
+            self._vertices_set.add(v)
+            self.listaAdj[v] = []
+            self.listaIN[v] = []
+    
+    def add_aresta(self, u, v, peso=None):
 
-        # Adiciona os vértices
-        if origem not in self.vertices:
-            self.vertices.append(origem)
+        if not self.ponderado or peso is None:
+            peso = 1
 
-        if destino not in self.vertices:
-            self.vertices.append(destino)
+        # Garante que os vértices existem
+        self.add_vertice(u)
+        self.add_vertice(v)
 
-        # Adiciona a aresta direcionada (origem -> destino)
-        if (origem, destino) not in self.arestas:
-            self.arestas[(origem, destino)] = peso
+        # Salva a aresta com peso
+        if (u, v) not in self.arestas:
+            self.arestas[(u, v)] = peso
 
-        # Inicializa listas de adjacência
-        if origem not in self.listaAdj:
-            self.listaAdj[origem] = []
-
-        if destino not in self.listaAdj:
-            self.listaAdj[destino] = []
-
-        # Adiciona adjacência (SOMENTE origem -> destino)
-        if destino not in self.listaAdj[origem]:
-            self.listaAdj[origem].append(destino)
-
+        # Salva adjacência (direcionado)
+        if v not in self.listaAdj[u]:
+            self.listaAdj[u].append(v)
+        if u not in self.listaIN[v]:
+            self.listaIN[v].append(u)
+            
     def n(self):  # Retorna número de vértices
         return len(self.vertices)
 
@@ -48,20 +48,13 @@ class Digrafo:
         if vertice not in self.vertices:
             raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
 
-        return self.listaAdj.get(vertice, [])
+        self.listaAdj[vertice]
 
     def inneighborhood(self, vertice):
         if vertice not in self.vertices:
             raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
 
-        entrada = []
-
-        for origem in self.listaAdj:
-            if vertice in self.listaAdj[origem]:
-                entrada.append(origem)
-
-        return entrada
-
+        return self.listaIN[vertice] 
     def viz(self, vertice):
         if vertice not in self.vertices:
             raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
@@ -73,18 +66,13 @@ class Digrafo:
         if vertice not in self.vertices:
             raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
 
-        return len(self.listaAdj.get(vertice, []))
+        return len(self.listaAdj[vertice])
 
     def indegree(self, vertice):
         if vertice not in self.vertices:
             raise ValueError(f"O vértice '{vertice}' não está no dígrafo.")
 
-        cont = 0
-        for origem in self.listaAdj:
-            if vertice in self.listaAdj[origem]:
-                cont += 1
-
-        return cont
+        return len(self.listaIN[vertice])
 
     def d(self, vertice):
         if vertice not in self.vertices:
@@ -103,30 +91,12 @@ class Digrafo:
         return self.arestas[(origem, destino)]
 
     def mind(self):
-        if not self.vertices:
-            raise ValueError("O grafo não possui vértices.")
-
-        menor = self.d(self.vertices[0])
-
-        for v in self.vertices[1:]:
-            deg = self.d(v)
-            if deg < menor:
-                menor = deg
-
-        return menor
+        return min(self.d(v) for v in self.vertices)
 
     def maxd(self):
-        if not self.vertices:
-            raise ValueError("O grafo não possui vértices.")
+        return max(self.d(v) for v in self.vertices)
 
-        maior = self.d(self.vertices[0])
-
-        for v in self.vertices[1:]:
-            deg = self.d(v)
-            if deg > maior:
-                maior = deg
-
-        return maior
+        
 
     def bfs(self, s):
         if s not in self.vertices:
@@ -301,50 +271,47 @@ class Digrafo:
         return d, pi
     
     def coloracao_propria(self):
-        if not self.vertices:
-            return [], 0
-
-        cor = {v: 0 for v in self.vertices}
+        c = {v: 0 for v in self.vertices}  # cores por vértice
 
         for vertice in self.vertices:
-
             cores_usadas = set()
 
-            for vizinho in self.viz(vertice):  # entrada + saída
-                if cor[vizinho] != 0:
-                    cores_usadas.add(cor[vizinho])
+            for vizinho in self.listaAdj.get(vertice, []):
+                if c[vizinho] != 0:
+                    cores_usadas.add(c[vizinho])
 
-            nova_cor = 1
-            while nova_cor in cores_usadas:
-                nova_cor += 1
+            cor = 1
+            while cor in cores_usadas:
+                cor += 1
 
-            cor[vertice] = nova_cor
+            c[vertice] = cor
 
-        c = [cor[v] for v in self.vertices]
-        k = max(c)
+        k = max(c.values())
 
         return c, k
     
         # Encontra um caminho com pelo menos 10 arestas (11 vértices) usando BFS
     def encontrar_caminho_10_arestas(self):
-        for origem in self.vertices:
-            d, pi = self.bfs(origem)
+        # roda o seu DFS
+        lista_pi, _, _ = self.dfs()
 
-            dist = dict(zip(self.vertices, d))
-            pred = dict(zip(self.vertices, pi))
+        # transforma em dicionário: vértice -> predecessor
+        pred = dict(zip(self.vertices, lista_pi))
 
-            destino = max(dist, key=dist.get)
+        # tenta montar caminhos a partir de cada vértice
+        for destino in self.vertices:
+            caminho = []
+            atual = destino
 
-            if dist[destino] >= 10:
-                caminho = []
-                atual = destino
+            while atual is not None:
+                caminho.append(atual)
+                atual = pred[atual]
 
-                while atual is not None:
-                    caminho.append(atual)
-                    atual = pred[atual]
+            caminho.reverse()  # origem -> destino
 
-                caminho.reverse()
-                return caminho[:11]
+            # se tiver pelo menos 10 arestas (11 vértices)
+            if len(caminho) >= 11:
+                return caminho[:11]  # retorna exatamente 10 arestas
 
         return None
 
@@ -404,7 +371,7 @@ class Digrafo:
             for linha in f:
                 if linha.startswith("a"):
                     _, x, y, p = linha.strip().split()
-                    self.add([int(x), int(y), int(p)])
+                    self.add_aresta(int(x), int(y), int(p))
         return self
     
     
