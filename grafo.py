@@ -132,9 +132,10 @@ class Grafo:
 
     def djikstra(self, v):
         vertices = {}
-        naoVisitados = self.vertices #Vérices à serem visitados
+        naoVisitados = set() #Vérices à serem visitados
 
         for vertice in self.vertices:
+            naoVisitados.add(vertice)
             if vertice != v:
                 vertices[vertice] = [None, float('inf')]# vértice predecessor, peso
 
@@ -150,7 +151,6 @@ class Grafo:
                     valorMinimo = vertices[vertice][1]
 
             naoVisitados.remove(verticeMinimo)#remove dos vérices a serem visitados
-            print(len(naoVisitados))
 
             for vertice in self.listaAdj[verticeMinimo]:#Faz o relaxamento das aresta para cada vizinho que ainda não tenha sido visitado
                 if vertice not in naoVisitados:
@@ -173,21 +173,27 @@ class Grafo:
 
     def bf(self, v):  
         vertices = {}
+        arestasDuplicadas = {}
 
         for vertice in self.vertices:#Inicialização de cada vértice
             vertices[vertice] = [None, float('inf')]
+
+        for aresta in self.arestas:
+            arestasDuplicadas[aresta] = self.arestas[aresta]
+            arestaInversa = aresta[::-1]
+            arestasDuplicadas[arestaInversa] = self.arestas[aresta]
 
         vertices[v] = [None, 0]
 
         for _ in range(len(self.vertices) - 1):#Executa até o número de vértices - 1
 
-            for aresta in self.arestas:#Relaxamento
-                if vertices[aresta[0]][1] + self.arestas[aresta] < vertices[aresta[1]][1]:
+            for aresta in arestasDuplicadas:#Relaxamento
+                if vertices[aresta[0]][1] + arestasDuplicadas[aresta] < vertices[aresta[1]][1]:
                     vertices[aresta[1]][0] = aresta[0]
-                    vertices[aresta[1]][1] = vertices[aresta[0]][1] + self.arestas[aresta]
+                    vertices[aresta[1]][1] = vertices[aresta[0]][1] + arestasDuplicadas[aresta]
 
-        for aresta in self.arestas:#Verificação de ciclo negativo
-            if vertices[aresta[0]][1] + self.arestas[aresta] < vertices[aresta[1]][1]:
+        for aresta in arestasDuplicadas:#Verificação de ciclo negativo
+            if vertices[aresta[0]][1] + arestasDuplicadas[aresta] < vertices[aresta[1]][1]:
 
                 return "Existe ciclo negativo"
             
