@@ -1,44 +1,41 @@
 from collections import deque
 from funcoesAuxiliares import dfs_visita
+import sys
+
+sys.setrecursionlimit(40000)#Necessário para dfs em um grafo profundo demais
 
 class Grafo:
     def __init__(self, ponderado=False): # Possui a lista de vétices, se ele é ponderado ou não, a lista de arestas e a lista com as adjacências de cada vértice
-        self.vertices = []
+        self.vertices = set()
         self.ponderado = ponderado
         self.arestas = {}
         self.listaAdj = {}
 
     
-    def add(self, origemDestinoPeso): # A função recebe uma lista com três índices [origem, destino, peso] se for ponderado, caso contrário só 2 índices [origem, destino]
+    def add(self, origem, destino, peso): # A função recebe uma lista com três índices [origem, destino, peso] se for ponderado, caso contrário só 2 índices [origem, destino]
         if not self.ponderado: # Caso não seja ponderado, adiciona valor unitário para a aresta
-            origemDestinoPeso.append(1)
+            peso = 1
 
-        if origemDestinoPeso[0] not in self.vertices:# Adiciona a origem ao self.vertices
-            self.vertices.append(origemDestinoPeso[0]) 
+        if origem not in self.vertices:# Adiciona a origem ao self.vertices
+            self.vertices.add(origem) 
 
-        if origemDestinoPeso[1] not in self.vertices:# Adiciona o destino ao self.vertices
-            self.vertices.append(origemDestinoPeso[1])
+        if destino not in self.vertices:# Adiciona o destino ao self.vertices
+            self.vertices.add(destino)
 
-        if tuple(origemDestinoPeso[:2]) not in self.arestas:# Adiciona a aresta com seu peso ao self.arestas
-            self.arestas[tuple(origemDestinoPeso[:2])] = origemDestinoPeso[2]
+        if ((origem, destino) not in self.arestas) and ((destino, origem) not in self.arestas):# Adiciona a aresta com seu peso ao self.arestas
+            self.arestas[(origem, destino)] = peso
 
-        aresta = origemDestinoPeso[:2]
-        aresta.reverse()
+        if origem not in self.listaAdj:# Adiciona a origem à lista de adjacências
+            self.listaAdj[origem] = set()
 
-        if tuple(aresta) not in self.arestas:# Adiciona a aresta "invertida" ao self.arestas
-            self.arestas[tuple(aresta)] = origemDestinoPeso[2]
+        if destino not in self.listaAdj:# Adiciona o destino à lista de adjacências
+            self.listaAdj[destino] = set()
 
-        if origemDestinoPeso[0] not in self.listaAdj:# Adiciona a origem à lista de adjacências
-            self.listaAdj[origemDestinoPeso[0]] = []
+        if destino not in self.listaAdj[origem]:# Adiciona a incidência do destino na origem
+            self.listaAdj[origem].add(destino)
 
-        if origemDestinoPeso[1] not in self.listaAdj:# Adiciona o destino à lista de adjacências
-            self.listaAdj[origemDestinoPeso[1]] = []
-
-        if origemDestinoPeso[1] not in self.listaAdj[origemDestinoPeso[0]]:# Adiciona a incidência do destino na origem
-            self.listaAdj[origemDestinoPeso[0]].append(origemDestinoPeso[1])
-
-        if origemDestinoPeso[0] not in self.listaAdj[origemDestinoPeso[1]]:# Adiciona a incidência da origem no destino
-            self.listaAdj[origemDestinoPeso[1]].append(origemDestinoPeso[0])
+        if origem not in self.listaAdj[destino]:# Adiciona a incidência da origem no destino
+            self.listaAdj[destino].add(origem)
 
 
     def n(self):# Retorna número de vértices
@@ -46,26 +43,22 @@ class Grafo:
     
     
     def m(self):# Retorna número de arestas
-        return len(self.arestas)/2
+        return len(self.arestas)
     
     
     def viz(self, vertice):# Retorna os vizinhos de um vértice
-        if vertice not in self.vertices:
-            return "Esse vértice não está no grafo"
-        
         return self.listaAdj.get(vertice)
     
     
-    def d(self, vertice):# Retorna o grau de um vértices
-        if vertice not in self.vertices:
-            return "Esse vértice não está no grafo"
-        
+    def d(self, vertice):# Retorna o grau de um vértices        
         return len(self.listaAdj.get(vertice)) # type: ignore
     
     
     def w(self, origem, destino):
-        origemDestino = [origem, destino]
-        return self.arestas[tuple(origemDestino)] 
+        if self.arestas.get((origem, destino)):
+            return self.arestas.get((origem, destino))
+        else:
+            return self.arestas.get((destino, origem))
      
 
     def mind(self):
@@ -88,9 +81,6 @@ class Grafo:
     
 
     def bfs(self, v):
-        if v not in self.vertices:
-            raise ValueError(f"O vértice '{v}' não está no grafo.")
-
         vertices = {}
 
         for vertice in self.vertices:
@@ -121,15 +111,14 @@ class Grafo:
     
 
     def dfs(self, v):
-        if v not in self.vertices:
-            raise ValueError(f"O vértice '{v}' não está no grafo.")
-
         vertices = {}
 
         for vertice in self.vertices:
             vertices[vertice] = ['branco', None, 0, 0]# cor, vértice predecessor, tempo de início da visita, tempo de fim da visita
         
         tempo = 0
+
+        dfs_visita(vertices, v, self.listaAdj, tempo)
         
         for vertice in self.vertices:
             if vertices[vertice][0] == 'branco':
@@ -141,23 +130,19 @@ class Grafo:
 
         return pi, ini, fim
 
-    def dijkstra(self, v):
-        if v not in self.vertices:
-            raise ValueError(f"O vértice '{v}' não está no grafo.")
-
+    def djikstra(self, v):
         vertices = {}
-        naoVisitados = [] #Vérices à serem visitados
+        naoVisitados = self.vertices #Vérices à serem visitados
 
         for vertice in self.vertices:
-            naoVisitados.append(vertice)
             if vertice != v:
                 vertices[vertice] = [None, float('inf')]# vértice predecessor, peso
 
         vertices[v] = [None, 0]
 
         while len(naoVisitados) != 0:
-            verticeMinimo = naoVisitados[0]
-            valorMinimo = vertices[verticeMinimo][1]
+            verticeMinimo = None
+            valorMinimo = float("inf")
 
             for vertice in naoVisitados:#procura o vétice com peso mínimo que não foi visitado
                 if vertices[vertice][1] <= valorMinimo:
@@ -165,15 +150,20 @@ class Grafo:
                     valorMinimo = vertices[vertice][1]
 
             naoVisitados.remove(verticeMinimo)#remove dos vérices a serem visitados
+            print(len(naoVisitados))
 
             for vertice in self.listaAdj[verticeMinimo]:#Faz o relaxamento das aresta para cada vizinho que ainda não tenha sido visitado
                 if vertice not in naoVisitados:
                     continue
 
-                aresta = [verticeMinimo, vertice]
-                if vertices[vertice][1] > vertices[verticeMinimo][1] + self.arestas[tuple(aresta)]:#Processo de relaxamento da aresta
+                if self.arestas.get((verticeMinimo, vertice)):
+                    aresta = (verticeMinimo, vertice)
+                else:
+                    aresta = (vertice, verticeMinimo)
+
+                if vertices[vertice][1] > vertices[verticeMinimo][1] + self.arestas.get(aresta):#Processo de relaxamento da aresta
                     vertices[vertice][0] = verticeMinimo
-                    vertices[vertice][1] = vertices[verticeMinimo][1] + self.arestas[tuple(aresta)]
+                    vertices[vertice][1] = vertices[verticeMinimo][1] + self.arestas.get(aresta)
 
         d = [vertices[vertice][1] for vertice in self.vertices]
         pi = [vertices[vertice][0] for vertice in self.vertices]
@@ -181,10 +171,7 @@ class Grafo:
         return d, pi
 
 
-    def bf(self, v):
-        if v not in self.vertices:
-            raise ValueError(f"O vértice '{v}' não está no grafo.")
-        
+    def bf(self, v):  
         vertices = {}
 
         for vertice in self.vertices:#Inicialização de cada vértice
@@ -208,7 +195,7 @@ class Grafo:
         pi = [vertices[vertice][0] for vertice in self.vertices]
 
         return d, pi
-                    
+                     
     
     def coloracao_propria(self):
         c = [0 for _ in range(len(self.vertices))] #Cores inicializadas com vazio (0)
@@ -217,16 +204,15 @@ class Grafo:
             cores_usadas = []#Verifica as cores utilizadas por cada vizinho do vértice
 
             for vizinho in self.listaAdj[vertice]:
-
-                if c[vizinho] != 0:
-                    cores_usadas.append(c[vizinho])
+                if c[vizinho-1] != 0:
+                    cores_usadas.append(c[vizinho-1])
             
             cor = 1
 
             while cor in cores_usadas:#Adiciona uma cor ao vértice dependendo dos seus vizinhos
                 cor += 1
 
-            c[vertice] = cor
+            c[vertice-1] = cor
             
         k = max(c)
 
